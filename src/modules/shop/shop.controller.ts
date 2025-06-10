@@ -3,10 +3,9 @@ import {
   Get,
   Post,
   Body,
+  Put,
   Param,
   Delete,
-  Put,
-  Patch,
 } from '@nestjs/common';
 import { ShopService } from './shop.service';
 import { CreateShopDto } from './dto/create-shop.dto';
@@ -31,13 +30,18 @@ export class ShopController {
     return this.shopService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: number, @Body() updateShopDto: UpdateShopDto) {
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateShopDto: UpdateShopDto) {
     return this.shopService.update(+id, updateShopDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.shopService.remove(+id);
+  }
+
+  @Put(':id/add-user')
+  addUserToShop(@Param('id') shopId: string, @Body('userId') userId: number) {
+    return this.shopService.addUserToShop(+shopId, userId);
   }
 }

@@ -1,29 +1,61 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { CreateShopDto } from './dto/create-shop.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
+import { UserResponseDto } from '../user/inteface';
 
 @Injectable()
 export class ShopService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(data: Prisma.ShopCreateInput) {
-    return this.prisma.shop.create({ data });
+  async create(createShopDto: CreateShopDto) {
+    return this.prisma.shop.create({
+      data: createShopDto,
+    });
   }
 
-  findAll() {
-    return this.prisma.shop.findMany();
+  async findAll() {
+    return this.prisma.shop.findMany({
+      orderBy: { created_at: 'desc' }, // New to old
+    });
   }
 
-  findOne(id: number) {
-    return this.prisma.shop.findUnique({ where: { id } });
+  async findOne(id: number) {
+    const shop = await this.prisma.shop.findUnique({
+      where: { id },
+      include: {
+        userOnShops: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!shop) throw new NotFoundException('Shop not found');
+
+    return shop;
   }
 
-  update(id: number, data: Prisma.ShopUpdateInput) {
-    return this.prisma.shop.update({ where: { id }, data });
+  async update(id: number, updateShopDto: UpdateShopDto) {
+    await this.findOne(id); // Ensure shop exists
+    return this.prisma.shop.update({
+      where: { id },
+      data: updateShopDto,
+    });
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    await this.findOne(id); // Ensure shop exists
     return this.prisma.shop.delete({ where: { id } });
+  }
+
+  async addUserToShop(shopId: number, userId: number) {
+    return this.prisma.userOnShop.create({
+      data: {
+        shopId,
+        userId,
+      },
+    });
   }
 }

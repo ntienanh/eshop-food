@@ -1,4 +1,15 @@
-import { IsEmail, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  ArrayNotEmpty,
+  ArrayUnique,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { UserRole } from '@prisma/client';
 
 export class CreateUserDto {
@@ -26,4 +37,12 @@ export class CreateUserDto {
   @IsOptional()
   @IsInt()
   updated_by?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Type(() => Number) // Đảm bảo transform đúng khi nhận từ body
+  shopIds?: number[];
 }

@@ -35,26 +35,37 @@ model User {
   created_by Int?
   updated_by Int?
 
-  shops      Shop[]
+  userOnShops UserOnShop[]
 }
 
+model UserOnShop {
+  userId Int
+  shopId Int
+  assignedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  shop Shop @relation(fields: [shopId], references: [id])
+
+  @@id([userId, shopId])
+}
+
+
 model Shop {
-  id              Int                  @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   name            String
   description     String
   status          ShopStatus
   address         String
   thumbnail       String
   table_quantity  Int
-
-  created_at      DateTime             @default(now())
-  updated_at      DateTime             @updatedAt
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
   created_by      Int?
   updated_by      Int?
 
-  users User[]
-  categories ProductCategory[]
-  tables Table[]
+  userOnShops     UserOnShop[]
+  categories      ProductCategory[]
+  tables          Table[]
 }
 
 model Table {
