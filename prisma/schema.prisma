@@ -83,7 +83,6 @@ model Table {
   shop            Shop @relation(fields: [shop_id], references: [id])
 
   cart            Cart? // Dùng '?' để cho phép Cart là null nếu Table chưa có Cart
-  cart_id         Int?  @unique // Khóa ngoại và unique để đảm bảo quan hệ 1-1
 }
 
 model Cart {
@@ -95,7 +94,9 @@ model Cart {
   created_by      Int?
   updated_by      Int?
 
-  table           Table @relation(fields: [id], references: [cart_id])
+  table_id     Int      @unique
+  table        Table    @relation(fields: [table_id], references: [id])
+  
   orders          Order[]
 }
 
