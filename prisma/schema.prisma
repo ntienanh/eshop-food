@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
@@ -33,29 +27,138 @@ model User {
   name       String
   user_name  String   @unique
   password   String
+  email      String? 
+  role       UserRole
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   created_by Int?
   updated_by Int?
-  role       UserRole
 
-  email String? // 👈 thêm dòng này
   shops      Shop[]
 }
 
 model Shop {
-  id            Int       @id @default(autoincrement())
-  user_id       Int
-  user          User      @relation(fields: [user_id], references: [id])
-  name          String
-  description   String
-  status        ShopStatus
-  address       String
-  thumbnail     String
-  table_quantity Int
+  id              Int                  @id @default(autoincrement())
+  name            String
+  description     String
+  status          ShopStatus
+  address         String
+  thumbnail       String
+  table_quantity  Int
 
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+  created_by      Int?
+  updated_by      Int?
+
+  users User[]
+  categories ProductCategory[]
+  tables Table[]
 }
+
+model Table {
+  id              Int                  @id @default(autoincrement())
+  name            String
+  order_number    String
+  qr_code         String
+
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+  created_by      Int?
+  updated_by      Int?
+
+  shop_id         Int
+  shop            Shop @relation(fields: [shop_id], references: [id])
+
+  cart            Cart? // Dùng '?' để cho phép Cart là null nếu Table chưa có Cart
+  cart_id         Int?  @unique // Khóa ngoại và unique để đảm bảo quan hệ 1-1
+}
+
+model Cart {
+  id              Int                  @id @default(autoincrement())
+  total_amout Decimal
+
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+  created_by      Int?
+  updated_by      Int?
+
+  table           Table @relation(fields: [id], references: [cart_id])
+  orders          Order[]
+}
+
+model Order {
+  id              Int                  @id @default(autoincrement())
+  note            String?
+
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+  created_by      Int?
+  updated_by      Int?
+
+  cart_id         Int
+  cart            Cart @relation(fields: [cart_id], references: [id])
+
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id              Int                  @id @default(autoincrement())
+  note            String?
+
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+  created_by      Int?
+  updated_by      Int?
+
+  // Quan hệ n-1: Mỗi OrderItem thuộc về một Order
+  order_id        Int
+  order           Order                @relation(fields: [order_id], references: [id])
+
+  // Quan hệ n-1: Mỗi OrderItem tham chiếu đến một Product gốc
+  // Một Product có thể được mua trong nhiều OrderItem khác nhau
+  product_id      Int
+  product         Product              @relation(fields: [product_id], references: [id])
+}
+
+model ProductCategory {
+  id              Int                  @id @default(autoincrement())
+  name            String
+  description     String
+
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+  created_by      Int?
+  updated_by      Int?
+
+  shops           Shop[]
+  products        Product[] 
+}
+
+
+model Product {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String?  
+  price           Decimal  
+  image           String?  
+  is_available    Boolean  @default(true) 
+
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+  created_by      Int?
+  updated_by      Int?
+
+  category_id     Int
+  category        ProductCategory @relation(fields: [category_id], references: [id])
+
+  // Quan hệ 1-n: Một Product có thể xuất hiện trong nhiều OrderItem
+  orderItems      OrderItem[]
+}
+
+
+
+
 
 

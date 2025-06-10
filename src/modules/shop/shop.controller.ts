@@ -18,10 +18,7 @@ export class ShopController {
 
   @Post()
   create(@Body() createShopDto: CreateShopDto) {
-    return this.shopService.create({
-      ...createShopDto,
-      user: { connect: { id: createShopDto.user_id } },
-    });
+    return this.shopService.create(createShopDto);
   }
 
   @Get()

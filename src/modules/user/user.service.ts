@@ -1,23 +1,41 @@
-import { Injectable } from '@nestjs/common';
-import { UserRole } from 'generated/prisma';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getAll() {
+  async create(createUserDto: CreateUserDto) {
+    return this.prisma.user.create({
+      data: {
+        ...createUserDto,
+        role: createUserDto.role ?? 'USER', // Provide a default role if undefined
+      },
+    });
+  }
+
+  async findAll() {
     return this.prisma.user.findMany();
   }
 
-  async create(data: {
-    name: string;
-    user_name: string;
-    password: string;
-    created_by?: number;
-    updated_by?: number;
-    role: UserRole;
-  }) {
-    return this.prisma.user.create({ data });
+  async findOne(id: number) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    await this.findOne(id); // Ensure user exists
+    return this.prisma.user.update({
+      where: { id },
+      data: updateUserDto,
+    });
+  }
+
+  async remove(id: number) {
+    await this.findOne(id); // Ensure user exists
+    return this.prisma.user.delete({ where: { id } });
   }
 }
